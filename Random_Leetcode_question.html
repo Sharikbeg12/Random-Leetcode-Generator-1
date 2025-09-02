@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Random LeetCode Question</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body, html {
+      height:100%;
+      font-family:'Poppins', sans-serif;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+      color:#fff;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(0,255,255,0.2);
+      border-radius: 18px;
+      padding: 32px 40px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+      backdrop-filter: blur(10px) saturate(180%);
+      max-width: 520px;
+      width: 90%;
+      position: relative;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+    }
+
+    button {
+      padding: 14px 28px;
+      font-size: 16px;
+      font-weight: 600;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+      background:linear-gradient(90deg, #007cf0, #00dfd8);
+      color:#fff;
+      box-shadow: 0 8px 20px rgba(0,223,216,0.3);
+      transition: all 0.15s ease-in-out;
+    }
+
+    button:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 12px 28px rgba(0,223,216,0.5);
+    }
+
+    #status {
+      margin-top: 16px;
+      font-size: 14px;
+      color: rgba(200,255,255,0.8);
+    }
+
+    .spinner {
+      width:16px;
+      height:16px;
+      border:2px solid rgba(255,255,255,0.2);
+      border-top-color:#00dfd8;
+      border-radius:50%;
+      display:inline-block;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .problem-title {
+      margin-top:20px;
+      font-size:18px;
+      font-weight:600;
+    }
+
+    .badge {
+      display:inline-block;
+      padding:4px 12px;
+      border-radius:12px;
+      font-size:13px;
+      font-weight:600;
+      margin-top:10px;
+    }
+
+    .easy { background:#28a745; color:white; }
+    .medium { background:#ffc107; color:black; }
+    .hard { background:#dc3545; color:white; }
+
+    .history {
+      margin-top:25px;
+      text-align:left;
+    }
+
+    .history h3 {
+      font-size:16px;
+      margin-bottom:10px;
+      color:#00dfd8;
+    }
+
+    .history a {
+      display:block;
+      color:#fff;
+      text-decoration:none;
+      margin:4px 0;
+      transition:0.2s;
+    }
+
+    .history a:hover {
+      color:#00dfd8;
+    }
+
+    @media (max-width:480px) {
+      .card { padding:24px 20px; }
+      h1 { font-size:1.5rem; }
+      button { font-size:15px; padding:12px 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Random LeetCode Generator</h1>
+    <button onclick="getRandomQuestion()">Get Random Question</button>
+    <p id="status">Ready</p>
+    <p id="question" class="problem-title"></p>
+    <span id="difficulty" class="badge"></span>
+
+    <div class="history">
+      <h3>History</h3>
+      <div id="historyList"></div>
+    </div>
+  </div>
+
+  <script>
+    const historyList = document.getElementById("historyList");
+
+    async function getRandomQuestion() {
+      const statusEl = document.getElementById("status");
+      const questionEl = document.getElementById("question");
+      const difficultyEl = document.getElementById("difficulty");
+
+      statusEl.innerHTML = '<span class="spinner"></span> Loading...';
+      questionEl.textContent = "";
+      difficultyEl.textContent = "";
+      difficultyEl.className = "badge";
+
+      try {
+        const sizeRes = await fetch("https://datasets-server.huggingface.co/size?dataset=kaysss/leetcode-problem-set&config=default&split=train");
+        const sizeData = await sizeRes.json();
+        const total = sizeData.size.splits[0].num_rows;
+
+        const randomOffset = Math.floor(Math.random() * total);
+        const rowRes = await fetch(`https://datasets-server.huggingface.co/rows?dataset=kaysss/leetcode-problem-set&config=default&split=train&offset=${randomOffset}&length=1`);
+        const rowData = await rowRes.json();
+
+        const problem = rowData.rows[0].row;
+        const slug = problem.titleSlug;
+        const title = problem.title;
+        const difficulty = problem.difficulty;
+
+        statusEl.textContent = " Problem Loaded!";
+        questionEl.innerHTML = `<a href="https://leetcode.com/problems/${slug}/" target="_blank">${title}</a>`;
+
+        difficultyEl.textContent = difficulty;
+        difficultyEl.classList.add(difficulty.toLowerCase());
+
+        // Add to history
+        const link = document.createElement("a");
+        link.href = `https://leetcode.com/problems/${slug}/`;
+        link.target = "_blank";
+        link.textContent = title + " (" + difficulty + ")";
+        historyList.prepend(link);
+
+      } catch(err) {
+        console.error(err);
+        statusEl.textContent = " Error! Try again.";
+      }
+    }
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
